@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{614D95D2-8B64-4106-82F0-0E5A30F43740}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{8E83E5B3-6060-45B2-9DBE-58D80F07A917}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookLibrary", "BookLibrary\BookLibrary.csproj", "{73B8A975-9184-4D7E-AC39-611A48770DEC}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "items", "items", "{F5ED5F77-3BCB-4AB8-9A2F-9BD9B41BE044}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookLibrary.Tests", "BookLibrary.Tests\BookLibrary.Tests.csproj", "{5E791D04-7571-4214-BCC8-6005F8CA61D5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{73B8A975-9184-4D7E-AC39-611A48770DEC} = {614D95D2-8B64-4106-82F0-0E5A30F43740}
+		{5E791D04-7571-4214-BCC8-6005F8CA61D5} = {8E83E5B3-6060-45B2-9DBE-58D80F07A917}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{73B8A975-9184-4D7E-AC39-611A48770DEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73B8A975-9184-4D7E-AC39-611A48770DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73B8A975-9184-4D7E-AC39-611A48770DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73B8A975-9184-4D7E-AC39-611A48770DEC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E791D04-7571-4214-BCC8-6005F8CA61D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E791D04-7571-4214-BCC8-6005F8CA61D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E791D04-7571-4214-BCC8-6005F8CA61D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E791D04-7571-4214-BCC8-6005F8CA61D5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
