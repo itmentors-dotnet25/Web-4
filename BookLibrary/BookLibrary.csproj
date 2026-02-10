@@ -7,17 +7,30 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.21"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="Ardalis.Specification" Version="9.3.1" />
+        <PackageReference Include="Ardalis.Specification.EntityFrameworkCore" Version="9.3.1" />
+        <PackageReference Include="FluentValidation" Version="12.1.1" />
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.23" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.21" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+
+        <!-- Для работы с Include нужен этот пакет -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.23" />
+
+        <!-- Если используется In-Memory база -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.23" />
+
+        <!-- Serilog -->
+        <PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+        <PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
+        <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+        
+        <PackageReference Include="System.Linq.Dynamic.Core" Version="1.7.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\" />
-      <Folder Include="Logging\" />
-      <Folder Include="Middleware\" />
-      <Folder Include="Models\" />
-      <Folder Include="Services\" />
-      <Folder Include="Validators\" />
+        <InternalsVisibleTo Include="BookLibrary.Tests" />
     </ItemGroup>
 
 </Project>
