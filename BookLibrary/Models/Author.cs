@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using BookLibrary.Validators;
+using Newtonsoft.Json;
 
 namespace BookLibrary.Models;
 
@@ -53,10 +54,15 @@ public class Author
     /// <summary>
     /// Дата создания записи
     /// </summary>
+    [JsonIgnore]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Дата последнего обновления
     /// </summary>
+    [JsonIgnore]
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonIgnore]
+    public IEnumerable<Book>? Books { get; set; }
 }

@@ -1,10 +1,11 @@
-﻿using Ardalis.Specification.EntityFrameworkCore;
-using BookLibrary.Contracts.Repositories;
+﻿using BookLibrary.Contracts.Repositories;
+using BookLibrary.Exceptions.Base;
 using BookLibrary.Models;
+using BookLibrary.Specifications;
 using BookLibrary.Specifications.Author;
 using BookLibrary.Storage;
 
-namespace BookLibrary.Repositories.AuthorRepositories;
+namespace BookLibrary.Repositories.AuthorRepositories.Memory;
 
 /// <summary>
 /// In-Memory репозиторий для авторов.
@@ -22,9 +23,18 @@ public class MemoryAuthorReadRepository(InMemoryStore store) : IAuthorReadReposi
         if (filterParams != null)
         {
             var specification = new ArdalisAuthorSpecification(filterParams);
-            query = query.WithSpecification(specification);
+            query = query.ApplyMySpecification(specification);
         }
         
         return Task.FromResult<IEnumerable<Author>>(query.ToList());
+    }
+
+    public Task<Author> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var author = _authors.FirstOrDefault(a => a.Id == id);
+
+        return author == null 
+            ? throw new ModelNotFoundException("Author") 
+            : Task.FromResult(author);
     }
 }

@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace BookLibrary.Filters.ValidationFilters;
 
-public class ValidationResponseFilter(IServiceProvider serviceProvider) : IActionFilter
+public class ValidationResponseFilter(IServiceProvider serviceProvider) : IAsyncActionFilter
 {
-    public void OnActionExecuting(ActionExecutingContext context)
+    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var controllerActionDescriptor = context.ActionDescriptor as ControllerActionDescriptor;
         
@@ -30,7 +30,7 @@ public class ValidationResponseFilter(IServiceProvider serviceProvider) : IActio
                 
                 if (validator != null && parameterValue != null)
                 {
-                    // 🔥 ПРОВЕРЯЕМ, ЕСТЬ ЛИ ОШИБКИ ПРИВЯЗКИ ДЛЯ СВОЙСТВ ЭТОГО ТИПА
+                    // ПРОВЕРЯЕМ, ЕСТЬ ЛИ ОШИБКИ ПРИВЯЗКИ ДЛЯ СВОЙСТВ ЭТОГО ТИПА
                     var propertyNames = parameterType.GetProperties()
                         .Select(p => p.Name.ToLowerInvariant())
                         .ToHashSet();
@@ -51,22 +51,22 @@ public class ValidationResponseFilter(IServiceProvider serviceProvider) : IActio
                         })
                         .Any(key => propertyNames.Contains(key) || key.Contains("."));
                     
-                    // 🔥 ВЫЗЫВАЕМ ВАЛИДАТОР ТОЛЬКО ЕСЛИ НЕТ ОШИБОК ПРИВЯЗКИ
-                    if (!hasBindingErrors)
-                    {
-                        var validationResult = validator.Validate(new ValidationContext<object>(parameterValue));
+                    // ВЫЗЫВАЕМ ВАЛИДАТОР ТОЛЬКО ЕСЛИ НЕТ ОШИБОК ПРИВЯЗКИ
+                    if (hasBindingErrors) continue;
+                    
+                    // АСИНХРОННЫЙ ВЫЗОВ!
+                    var validationResult = await validator.ValidateAsync(new ValidationContext<object>(parameterValue));
                         
-                        foreach (var failure in validationResult.Errors)
+                    foreach (var failure in validationResult.Errors)
+                    {
+                        var fieldName = ToCamelCase(failure.PropertyName);
+                            
+                        var modelStateEntry = context.ModelState.GetValueOrDefault(fieldName);
+                        var errorExists = modelStateEntry?.Errors.Any(e => e.ErrorMessage == failure.ErrorMessage) ?? false;
+                            
+                        if (!errorExists)
                         {
-                            var fieldName = ToCamelCase(failure.PropertyName);
-                            
-                            var modelStateEntry = context.ModelState.GetValueOrDefault(fieldName);
-                            var errorExists = modelStateEntry?.Errors.Any(e => e.ErrorMessage == failure.ErrorMessage) ?? false;
-                            
-                            if (!errorExists)
-                            {
-                                context.ModelState.AddModelError(fieldName, failure.ErrorMessage);
-                            }
+                            context.ModelState.AddModelError(fieldName, failure.ErrorMessage);
                         }
                     }
                 }
@@ -98,7 +98,11 @@ public class ValidationResponseFilter(IServiceProvider serviceProvider) : IActio
 
             var response = ValidationResponseFormat.FromModelStateErrors(errors);
             context.Result = response;
+            return; // Не продолжаем выполнение
         }
+        
+        // Продолжаем выполнение экшена
+        await next();
     }
 
     private string ToCamelCase(string? input)

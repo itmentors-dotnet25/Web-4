@@ -1,4 +1,5 @@
 ﻿using BookLibrary.Contracts.Services;
+using BookLibrary.Data.Requests.Book;
 using BookLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +14,7 @@ public class UpdateController(IBookService bookService) : ApiControllerBase
     /// <summary>
     /// Обновить книгу
     /// </summary>
-    /// <param name="book">Данные книги</param>
+    /// <param name="request">Данные книги</param>
     /// <param name="id"></param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Созданная книга</returns>
@@ -26,10 +27,10 @@ public class UpdateController(IBookService bookService) : ApiControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ExecuteAsync(
         int id,
-        Book book,
+        UpdateBookRequest request,
         CancellationToken cancellationToken = default)
     {
-        var updatedBook = await bookService.UpdateBookAsync(id, book, cancellationToken);
+        var updatedBook = await bookService.UpdateBookAsync(id, request, cancellationToken);
         
         return Success(updatedBook);
     }

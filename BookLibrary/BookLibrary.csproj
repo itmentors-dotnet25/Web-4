@@ -16,7 +16,22 @@
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
 
         <!-- Для работы с Include нужен этот пакет -->
+        <!-- Entity Framework Core -->
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.23" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        
+        <!-- PostgreSQL -->
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
+        <PackageReference Include="Testcontainers.PostgreSql" Version="4.10.0" />
+
+        <!-- EF Core Tools для миграций -->
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
 
         <!-- Если используется In-Memory база -->
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.23" />

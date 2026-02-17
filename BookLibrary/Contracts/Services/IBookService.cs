@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+﻿using BookLibrary.Data.Requests.Book;
 using BookLibrary.Models;
 using BookLibrary.Specifications.Book;
 
@@ -25,7 +25,7 @@ public interface IBookService
     // /// <summary>
     // /// Обновить книгу
     // /// </summary>
-    Task<Book> UpdateBookAsync(int id, Book book, CancellationToken cancellationToken = default);
+    Task<Book> UpdateBookAsync(int id, UpdateBookRequest data, CancellationToken cancellationToken = default);
     
     // /// <summary>
     // /// Удалить книгу

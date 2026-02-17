@@ -1,12 +1,15 @@
-﻿using BookLibrary.Models;
+﻿using BookLibrary.Data.Requests.Book;
 using BookLibrary.Validators.Rules;
 using FluentValidation;
 
 namespace BookLibrary.Validators;
 
-public class BookValidator : AbstractValidator<Book>
+public class BookValidator : AbstractValidator<CreateBookRequest>
 {
-    public BookValidator()
+    public BookValidator(
+        AuthorExistsRule authorExistsRule,
+        CategoryExistsRule categoryExistsRule
+        )
     {
         RuleFor(x => x.Title)
             .NotEmpty().WithMessage("Название книги обязательно для заполнения")
@@ -14,11 +17,15 @@ public class BookValidator : AbstractValidator<Book>
             .MaximumLength(255).WithMessage("Название должно быть от 1 до 255 символов")
             .WithName("title");
 
-        RuleFor(x => x.Author)
-            .NotEmpty().WithMessage("Автор книги обязателен для заполнения")
-            .MinimumLength(2).WithMessage("Автор должен быть от 2 до 100 символов")
-            .MaximumLength(100).WithMessage("Автор должен быть от 2 до 100 символов")
-            .WithName("author");
+        RuleFor(x => x.AuthorId)
+            .GreaterThan(0).WithMessage("Автор книги обязателен для заполнения")
+            .SetValidator(authorExistsRule)
+            .WithName("authorId");
+        
+        RuleFor(x => x.CategoryId)
+            .GreaterThan(0).WithMessage("Категория книги обязательна для заполнения")
+            .SetValidator(categoryExistsRule)
+            .WithName("categoryId");
 
         RuleFor(x => x.ISBN)
             .ValidIsbn()

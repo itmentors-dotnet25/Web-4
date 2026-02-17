@@ -34,6 +34,12 @@ public class AuthorFilterParams
     public string? SortByDesc { get; set; }   // Поля по убыванию
     
     /// <summary>
+    /// Включать ли информацию об авторах в ответ
+    /// </summary>
+    public bool WithBooks { get; set; } = false;
+
+    
+    /// <summary>
     /// Количество записей на страницу
     /// </summary>
     public int? PageSize { get; set; }

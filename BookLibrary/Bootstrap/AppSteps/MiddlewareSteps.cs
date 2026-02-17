@@ -15,9 +15,6 @@ public class MiddlewareSteps
         // Обработка несуществующих маршрутов
         app.UseMiddleware<RouteNotFoundMiddleware>();
         
-        // Обработка валидации
-        // app.UseMiddleware<ValidationMiddleware>();
-        
         // Обработка исключений
         app.UseMiddleware<ExceptionHandlingMiddleware>();
     }

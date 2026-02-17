@@ -22,10 +22,66 @@ public class InMemoryStore
     {
         return typeof(T) switch
         {
+            _ when typeof(T) == typeof(Category) => InitializeCategories() as List<T>,
             _ when typeof(T) == typeof(Author) => InitializeAuthors() as List<T>,
             _ when typeof(T) == typeof(Book) => InitializeBooks() as List<T>,
             _ => []
         };
+    }
+    
+    private List<Category> InitializeCategories()
+    {
+        return
+        [
+            new Category
+            {
+                Id = 1,
+                Name = "Классическая литература",
+                Description = "Великие произведения мировой литературы",
+                CreatedAt = DateTime.UtcNow.AddYears(-2),
+                UpdatedAt = DateTime.UtcNow.AddYears(-1)
+            },
+            new Category
+            {
+                Id = 2,
+                Name = "Фантастика",
+                Description = "Научная фантастика и фэнтези",
+                CreatedAt = DateTime.UtcNow.AddYears(-2),
+                UpdatedAt = DateTime.UtcNow.AddYears(-1)
+            },
+            new Category
+            {
+                Id = 3,
+                Name = "Детектив",
+                Description = "Детективные романы и триллеры",
+                CreatedAt = DateTime.UtcNow.AddYears(-2),
+                UpdatedAt = DateTime.UtcNow.AddYears(-1)
+            },
+            new Category
+            {
+                Id = 4,
+                Name = "Приключения",
+                Description = "Приключенческие романы",
+                CreatedAt = DateTime.UtcNow.AddYears(-2),
+                UpdatedAt = DateTime.UtcNow.AddYears(-1)
+            },
+            new Category
+            {
+                Id = 5,
+                Name = "Антиутопия",
+                Description = "Антиутопические произведения",
+                CreatedAt = DateTime.UtcNow.AddYears(-2),
+                UpdatedAt = DateTime.UtcNow.AddYears(-1)
+            },
+            new Category
+            {
+                Id = 6,
+                Name = "Сатира",
+                Description = "Сатирические произведения",
+                CreatedAt = DateTime.UtcNow.AddYears(-2),
+                UpdatedAt = DateTime.UtcNow.AddYears(-1)
+            }
+        ];
     }
     
     private List<Author> InitializeAuthors()
@@ -173,7 +229,8 @@ public class InMemoryStore
             {
                 Id = 1,
                 Title = "Преступление и наказание",
-                Author = "Фёдор Достоевский",
+                AuthorId = 1,
+                CategoryId = 1,
                 ISBN = "978-5-699-12345-6",
                 PublicationYear = 1866,
                 Genre = "Роман",
@@ -185,7 +242,8 @@ public class InMemoryStore
             {
                 Id = 2,
                 Title = "Война и мир",
-                Author = "Лев Толстой",
+                AuthorId = 2,
+                CategoryId = 1,
                 ISBN = "978-5-17-012345-7",
                 PublicationYear = 1869,
                 Genre = "Роман",
@@ -197,7 +255,8 @@ public class InMemoryStore
             {
                 Id = 3,
                 Title = "Мастер и Маргарита",
-                Author = "Михаил Булгаков",
+                AuthorId = 3,
+                CategoryId = 2,
                 ISBN = "978-5-699-54321-0",
                 PublicationYear = 1967,
                 Genre = "Фантастика",
@@ -209,7 +268,8 @@ public class InMemoryStore
             {
                 Id = 4,
                 Title = "Анна Каренина",
-                Author = "Лев Толстой",
+                AuthorId = 2,
+                CategoryId = 1,
                 ISBN = "978-5-17-012346-4",
                 PublicationYear = 1877,
                 Genre = "Роман",
@@ -221,7 +281,8 @@ public class InMemoryStore
             {
                 Id = 5,
                 Title = "1984",
-                Author = "Джордж Оруэлл",
+                AuthorId = 5,
+                CategoryId = 5,
                 ISBN = "978-0-452-28423-4",
                 PublicationYear = 1949,
                 Genre = "Антиутопия",
@@ -233,7 +294,8 @@ public class InMemoryStore
             {
                 Id = 6,
                 Title = "Старик и море",
-                Author = "Эрнест Хемингуэй",
+                AuthorId = 6,
+                CategoryId = 1,
                 ISBN = "978-0-684-80122-3",
                 PublicationYear = 1952,
                 Genre = "Повесть",
@@ -245,7 +307,8 @@ public class InMemoryStore
             {
                 Id = 7,
                 Title = "Тихий Дон",
-                Author = "Михаил Шолохов",
+                AuthorId = 4,
+                CategoryId = 1,
                 ISBN = "978-5-17-012347-1",
                 PublicationYear = 1940,
                 Genre = "Роман",
@@ -257,13 +320,79 @@ public class InMemoryStore
             {
                 Id = 8,
                 Title = "Собачье сердце",
-                Author = "Михаил Булгаков",
+                AuthorId = 3,
+                CategoryId = 6,
                 ISBN = "978-5-699-54322-7",
                 PublicationYear = 1925,
                 Genre = "Сатира",
                 IsAvailable = true,
                 CreatedAt = DateTime.UtcNow.AddYears(-1),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-2)
+            },
+            new Book
+            {
+                Id = 9,
+                Title = "Маленький принц",
+                AuthorId = 7,
+                CategoryId = 1,
+                ISBN = "978-0-15-601219-5",
+                PublicationYear = 1943,
+                Genre = "Повесть",
+                IsAvailable = true,
+                CreatedAt = DateTime.UtcNow.AddMonths(-10),
+                UpdatedAt = DateTime.UtcNow.AddMonths(-8)
+            },
+            new Book
+            {
+                Id = 10,
+                Title = "Убийство в Восточном экспрессе",
+                AuthorId = 8,
+                CategoryId = 3,
+                ISBN = "978-0-00-711930-3",
+                PublicationYear = 1934,
+                Genre = "Детектив",
+                IsAvailable = true,
+                CreatedAt = DateTime.UtcNow.AddMonths(-15),
+                UpdatedAt = DateTime.UtcNow.AddMonths(-10)
+            },
+            new Book
+            {
+                Id = 11,
+                Title = "Приключения Тома Сойера",
+                AuthorId = 9,
+                CategoryId = 4,
+                ISBN = "978-0-14-243707-5",
+                PublicationYear = 1876,
+                Genre = "Приключенческий роман",
+                IsAvailable = true,
+                CreatedAt = DateTime.UtcNow.AddMonths(-20),
+                UpdatedAt = DateTime.UtcNow.AddMonths(-15)
+            },
+            new Book
+            {
+                Id = 12,
+                Title = "Евгений Онегин",
+                AuthorId = 10,
+                CategoryId = 1,
+                ISBN = "978-5-08-004567-8",
+                PublicationYear = 1833,
+                Genre = "Роман в стихах",
+                IsAvailable = true,
+                CreatedAt = DateTime.UtcNow.AddYears(-5),
+                UpdatedAt = DateTime.UtcNow.AddYears(-4)
+            },
+            new Book
+            {
+                Id = 13,
+                Title = "Превращение",
+                AuthorId = 11,
+                CategoryId = 2,
+                ISBN = "978-0-525-56470-2",
+                PublicationYear = 1915,
+                Genre = "Новелла",
+                IsAvailable = true,
+                CreatedAt = DateTime.UtcNow.AddMonths(-16),
+                UpdatedAt = DateTime.UtcNow.AddMonths(-8)
             }
         ];
     }

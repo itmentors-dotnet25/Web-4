@@ -38,4 +38,56 @@ public abstract class MySpecification<T> : IMySpecification<T>
     {
         _orderByDescending.Add(orderByDescendingExpression);
     }
+    
+        // ===== СОРТИРОВКА ПО СТРОКОВЫМ ПАРАМЕТРАМ =====
+    /// <summary>
+    /// Применяет сортировку на основе строковых параметров sortBy (ASC) и sortByDesc (DESC).
+    /// Поддерживает множественные поля через запятую. Добавляет сортировку по умолчанию, если не задана.
+    /// </summary>
+    /// <param name="sortBy">Поля для сортировки по возрастанию (через запятую)</param>
+    /// <param name="sortByDesc">Поля для сортировки по убыванию (через запятую)</param>
+    /// <param name="defaultSort">Выражение для сортировки по умолчанию (если не заданы параметры)</param>
+    protected void ApplySorting(
+        string? sortBy,
+        string? sortByDesc,
+        Expression<Func<T, object>>? defaultSort = null)
+    {
+        // Применяем сортировку по возрастанию
+        if (!string.IsNullOrWhiteSpace(sortBy))
+        {
+            foreach (var field in ParseSortFields(sortBy))
+            {
+                if (GetSortExpression(field) is { } expr)
+                    AddOrderBy(expr);
+            }
+        }
+
+        // Применяем сортировку по убыванию
+        if (!string.IsNullOrWhiteSpace(sortByDesc))
+        {
+            foreach (var field in ParseSortFields(sortByDesc))
+            {
+                if (GetSortExpression(field) is { } expr)
+                    AddOrderByDescending(expr);
+            }
+        }
+
+        // Добавляем сортировку по умолчанию, если ничего не применено
+        if (OrderBy.Count == 0 && OrderByDescending.Count == 0 && defaultSort != null)
+        {
+            AddOrderBy(defaultSort);
+        }
+    }
+
+    /// <summary>
+    /// Возвращает выражение сортировки по имени поля. Должен быть переопределён в дочерних классах.
+    /// </summary>
+    /// <param name="field">Имя поля в нижнем регистре (без учёта регистра)</param>
+    /// <returns>Выражение для сортировки или null, если поле не поддерживается</returns>
+    protected virtual Expression<Func<T, object>>? GetSortExpression(string field) => null;
+
+    // ===== ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ =====
+    private static IEnumerable<string> ParseSortFields(string input) =>
+        input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+             .Select(f => f.Trim().ToLowerInvariant());
 }

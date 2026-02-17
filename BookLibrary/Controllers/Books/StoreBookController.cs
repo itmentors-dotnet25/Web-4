@@ -1,4 +1,5 @@
 ﻿using BookLibrary.Contracts.Services;
+using BookLibrary.Data.Requests.Book;
 using BookLibrary.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,7 +15,7 @@ public class StoreBookController(IBookService bookService)
     /// <summary>
     /// Добавить новую книгу
     /// </summary>
-    /// <param name="book">Данные книги</param>
+    /// <param name="request">Данные книги</param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Созданная книга</returns>
     [HttpPost]
@@ -23,10 +24,10 @@ public class StoreBookController(IBookService bookService)
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ExecuteAsync(
-        [FromBody] Book book,
+        [FromBody] CreateBookRequest request,
         CancellationToken cancellationToken = default)
     {
-        var createdBook = await bookService.CreateBookAsync(book, cancellationToken);
+        var createdBook = await bookService.CreateBookAsync(request.ToBook(), cancellationToken);
 
         return Created(createdBook);
     }

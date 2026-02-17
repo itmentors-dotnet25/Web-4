@@ -1,13 +1,10 @@
-﻿using BookLibrary.Contracts.Repositories;
-using BookLibrary.Contracts.Services;
+﻿using BookLibrary.Contracts.Services;
 using BookLibrary.Exceptions.Base;
 using BookLibrary.Exceptions.Contracts;
 using BookLibrary.Filters.ValidationFilters;
-using BookLibrary.Models;
-using BookLibrary.Repositories.AuthorRepositories;
-using BookLibrary.Repositories.BookRepositories;
 using BookLibrary.Services;
 using BookLibrary.Validators;
+using BookLibrary.Validators.Rules;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +23,9 @@ public class ServiceRegistrationSteps
         {
             options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
             options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+            options.SerializerSettings.ReferenceLoopHandling = 
+                Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+            
             // Продолжаем десериализацию после ошибок
             options.SerializerSettings.Error = (sender, args) =>
             {
@@ -40,7 +40,8 @@ public class ServiceRegistrationSteps
     public static void ConfigureValidation(WebApplicationBuilder builder)
     {
         // Регистрация валидатора для модели Book
-        builder.Services.AddScoped<IValidator<Book>, BookValidator>();
+        builder.Services.AddScoped<AuthorExistsRule>();
+        builder.Services.AddValidatorsFromAssemblyContaining<BookValidator>();
         
         // Кастомизация ответа валидации для ВСЕХ контроллеров
         // может понадобиться в будущем, если:
@@ -85,10 +86,8 @@ public class ServiceRegistrationSteps
     {
         // Services
         builder.Services.AddScoped<IBookService, BookService>();
-
-        // Repositories
-        builder.Services.AddScoped<IBookRepository, MemoryBookRepository>();
-        builder.Services.AddScoped<IAuthorReadRepository, MemoryAuthorReadRepository>();
+        builder.Services.AddScoped<IAuthorService, AuthorService>();
+        builder.Services.AddScoped<ICategoryService, CategoryService>();
         
         // Регистрация обработчика исключений
         builder.Services.AddSingleton<IExceptionMetadataProvider, AttributeExceptionMetadataProvider>();

@@ -1,6 +1,6 @@
-﻿using System.Collections.ObjectModel;
-using BookLibrary.Contracts.Repositories;
+﻿using BookLibrary.Contracts.Repositories;
 using BookLibrary.Contracts.Services;
+using BookLibrary.Data.Requests.Book;
 using BookLibrary.Models;
 using BookLibrary.Specifications.Book;
 
@@ -25,9 +25,12 @@ public class BookService(IBookRepository repository) : IBookService
         return await _repository.CreateAsync(book, cancellationToken);
     }
 
-    public async Task<Book> UpdateBookAsync(int id, Book book, CancellationToken cancellationToken = default)
+    public async Task<Book> UpdateBookAsync(int id, UpdateBookRequest data, CancellationToken cancellationToken = default)
     {
-        return await _repository.UpdateAsync(id, book, cancellationToken);
+        var book = new Book();
+        data.ApplyTo(book);
+        
+        return await _repository.UpdateAsync(id, data, cancellationToken);
     }
     
     public async Task<bool> DeleteBookAsync(int id, CancellationToken cancellationToken = default)

@@ -25,6 +25,7 @@ public class SwaggerStep
                 {
                     { } name when name.Contains("Controllers.Books") => "Книги",
                     { } name when name.Contains("Controllers.Authors") => "Авторы",
+                    { } name when name.Contains("Controllers.Categories") => "Категории",
                     _ => "Общее"
                 }
             );

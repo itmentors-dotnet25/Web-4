@@ -1,93 +1,50 @@
-﻿using Ardalis.Specification;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLibrary.Specifications.Author;
 
-public class ArdalisAuthorSpecification : Specification<Models.Author>
+public class ArdalisAuthorSpecification : MySpecification<Models.Author>
 {
     // Поля разрешенные для сортировки
-    private static readonly Dictionary<string, Expression<Func<Models.Author, object>>> SortSelectors = 
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["name"] = a => a.Name,
-            ["country"] = a => a.Country ?? string.Empty,
-            ["birthyear"] = a => a.BirthYear ?? 0,
-            ["createdat"] = a => a.CreatedAt,
-            ["id"] = a => a.Id
-        };
+    private readonly AuthorFilterParams _filterParams;
+    private readonly string? _nameFilterPattern; // Шаблон для ILike: %значение%
 
     public ArdalisAuthorSpecification(AuthorFilterParams filterParams)
     {
-        // Фильтрация
-        if (!string.IsNullOrWhiteSpace(filterParams.Name))
-        {
-            Query.Where(a => a.Name.Contains(filterParams.Name!, StringComparison.OrdinalIgnoreCase));
-        }
-        
-        if (!string.IsNullOrWhiteSpace(filterParams.Country))
-        {
-            Query.Where(a => a.Country == filterParams.Country);
-        }
-        
-        if (filterParams.BirthYear.HasValue)
-        {
-            Query.Where(a => a.BirthYear == filterParams.BirthYear.Value);
-        }
-        
-        if (filterParams.IsActive.HasValue)
-        {
-            Query.Where(a => a.IsActive == filterParams.IsActive.Value);
-        }
-        
-        // Множественная сортировка
-        ApplyMultipleSorting(filterParams.SortBy, filterParams.SortByDesc);
-        
-        // Пагинация
-        if (filterParams.PageSize.HasValue && filterParams.PageNumber.HasValue)
-        {
-            Query.Skip((filterParams.PageNumber.Value - 1) * filterParams.PageSize.Value)
-                 .Take(filterParams.PageSize.Value);
-        }
+        _filterParams = filterParams;
+        _nameFilterPattern = !string.IsNullOrEmpty(filterParams.Name) 
+            ? $"%{filterParams.Name}%" 
+            : null;
+        Initialize();
     }
-    
-    private void ApplyMultipleSorting(string? sortBy, string? sortByDesc)
+
+    private void Initialize()
     {
-        var hasPrimarySort = false;
-        
-        // Сортировка по возрастанию (первое поле = основная, остальные = дополнительные)
-        if (!string.IsNullOrWhiteSpace(sortBy))
+        if (_filterParams.WithBooks)
         {
-            var fields = sortBy.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            
-            foreach (var field in fields)
-            {
-                if (SortSelectors.TryGetValue(field, out var selector))
-                {
-                    Query.OrderBy(selector!);
-                    hasPrimarySort = true;
-                }
-            }
+            AddInclude(nameof(Models.Author.Books)); // Строковое имя для совместимости
         }
-        
-        // Сортировка по убыванию
-        if (!string.IsNullOrWhiteSpace(sortByDesc))
-        {
-            var fields = sortByDesc.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            
-            foreach (var field in fields)
-            {
-                if (SortSelectors.TryGetValue(field, out var selector))
-                {
-                    Query.OrderByDescending(selector!);
-                    hasPrimarySort = true;
-                }
-            }
-        }
-        
-        // Если сортировка не указана, сортируем по Id по умолчанию
-        if (!hasPrimarySort)
-        {
-            Query.OrderBy(a => a.Id);
-        }
+
+        ApplySorting(
+            _filterParams.SortBy,
+            _filterParams.SortByDesc,
+            defaultSort: a => a.Id // Сортировка по умолчанию
+        );
     }
+
+    public override Expression<Func<Models.Author, bool>>? Criteria =>
+        author => string.IsNullOrEmpty(_nameFilterPattern) || 
+                  EF.Functions.ILike(author.Name, _nameFilterPattern);
+
+    protected override Expression<Func<Models.Author, object>>? GetSortExpression(string field) =>
+        field switch
+        {
+            "name" => a => a.Name,
+            "country" => a => a.Country ?? string.Empty,
+            "birthyear" => a => a.BirthYear ?? int.MaxValue,
+            "createdat" => a => a.CreatedAt,
+            "updatedat" => a => a.UpdatedAt,
+            "id" => a => a.Id,
+            _ => null
+        };
 }
