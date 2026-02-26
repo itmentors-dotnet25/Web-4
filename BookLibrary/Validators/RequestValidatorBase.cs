@@ -1,27 +1,31 @@
-using BookLibrary.Models;
+using System.Linq.Expressions;
 using FluentValidation;
 
 namespace BookLibrary.Validators;
 
-public class BookValidator : AbstractValidator<Book>
+public abstract class RequestValidatorBase<T> : AbstractValidator<T>
 {
-    public BookValidator()
+    protected RequestValidatorBase(
+        Expression<Func<T, string>> title,
+        Expression<Func<T, string>> author,
+        Expression<Func<T, string>> isbn,
+        Expression<Func<T, int>> year)
     {
-        RuleFor(x => x.Title)
+        RuleFor(title)
             .NotEmpty().WithMessage("Название книги обязательно для заполнения")
             .MaximumLength(200).WithMessage("Название должно содержать не более 200 символов");
 
-        RuleFor(x => x.Author)
+        RuleFor(author)
             .NotEmpty().WithMessage("Автор обязательно для заполнения")
             .MaximumLength(200).WithMessage("Имя автора должно содержать не более 200 символов");
 
-        RuleFor(x => x.ISBN)
+        RuleFor(isbn)
             .NotEmpty().WithMessage("ISBN обязательно для заполнения")
-            .Matches(@"^\d{3}-\d{2}-\d{4}-\d{3}-\d{1}$")
-            .WithMessage("ISBN должен быть в формате XXX-XX-XXXX-XXX-X");
+            .Matches(@"^\d{3}-\d{10}$")
+            .WithMessage("ISBN должен быть в формате XXX-XXXXXXXXXX");
 
-        RuleFor(x => x.PublicationYear)
+        RuleFor(year)
             .GreaterThanOrEqualTo(1000).WithMessage("Год издания не может быть меньше 1000")
-            .LessThanOrEqualTo(DateTime.Now.Year).WithMessage("Год издания не может превышать текущий год");
+            .LessThanOrEqualTo(DateTime.UtcNow.Year).WithMessage("Год издания не может превышать текущий год");
     }
 }

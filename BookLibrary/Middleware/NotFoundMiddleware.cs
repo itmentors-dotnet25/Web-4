@@ -1,5 +1,4 @@
 using System.Text.Json;
-using BookLibrary.Models;
 
 namespace BookLibrary.Middleware;
 
@@ -18,21 +17,23 @@ public class NotFoundMiddleware
     {
         await _next(context);
 
-        if (context.Response.StatusCode == 404)
+        if (context.Response.HasStarted) return;
+
+        if (context.Response.StatusCode == StatusCodes.Status404NotFound && context.GetEndpoint() == null)
         {
             _logger.LogWarning("Маршрут не найден: {Path}", context.Request.Path);
 
             context.Response.ContentType = "application/json";
 
-            var response = ApiResponse<object>.ErrorResponse("Маршрут не найден");
-            response.Data = new { path = context.Request.Path.ToString() };
-
-            var options = new JsonSerializerOptions
+            var payload = new
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                success = false,
+                message = "Маршрут не найден",
+                path = context.Request.Path.ToString(),
+                timestamp = DateTimeOffset.UtcNow.ToString("O")
             };
 
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
+            await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
         }
     }
 }
@@ -40,7 +41,5 @@ public class NotFoundMiddleware
 public static class NotFoundMiddlewareExtensions
 {
     public static IApplicationBuilder UseNotFoundMiddleware(this IApplicationBuilder builder)
-    {
-        return builder.UseMiddleware<NotFoundMiddleware>();
-    }
+        => builder.UseMiddleware<NotFoundMiddleware>();
 }

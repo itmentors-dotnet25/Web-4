@@ -1,98 +1,109 @@
-using BookLibrary.Models;
+using BookLibrary.Contracts;
+using BookLibrary.Mapping;
 using BookLibrary.Services;
 using Microsoft.AspNetCore.Mvc;
-
 namespace BookLibrary.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BooksController : ControllerBase
+public class BooksController(IBookService bookService, ILogger<BooksController> logger) : ControllerBase
 {
-    private readonly IBookService _bookService;
-    private readonly ILogger<BooksController> _logger;
-
-    public BooksController(IBookService bookService, ILogger<BooksController> logger)
-    {
-        _bookService = bookService;
-        _logger = logger;
-    }
-
     [HttpGet]
     public async Task<IActionResult> GetAllBooks([FromQuery] string? author = null, [FromQuery] string? sortBy = null)
     {
-        _logger.LogInformation("Запрос на получение всех книг. Параметры: author={Author}, sortBy={SortBy}", author,
+        logger.LogInformation("Запрос на получение всех книг. Параметры: author={Author}, sortBy={SortBy}", author,
             sortBy);
 
-        var books = await _bookService.GetAllBooksAsync(author, sortBy);
+        var books = await bookService.GetAllBooksAsync(author, sortBy);
+        var dto = books.Select(b => b.ToDto());
 
-        return Ok(ApiResponse<IEnumerable<Book>>.SuccessResponse(books, "Книги получены успешно"));
+        return Ok(ApiResponse<IEnumerable<BookDto>>.SuccessResponse(dto, "Книги получены успешно"));
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetBookById(int id)
     {
-        _logger.LogInformation("Запрос на получение книги с ID: {BookId}", id);
+        logger.LogInformation("Запрос на получение книги с ID: {BookId}", id);
 
-        var book = await _bookService.GetBookByIdAsync(id);
+        var book = await bookService.GetBookByIdAsync(id);
 
         if (book == null)
         {
-            _logger.LogWarning("Книга с ID: {BookId} не найдена", id);
-
-            return NotFound(ApiResponse<Book>.ErrorResponse($"Книга с ID {id} не найдена"));
+            logger.LogWarning("Книга с ID: {BookId} не найдена", id);
+            return NotFound(ApiResponse<BookDto>.ErrorResponse($"Книга с ID {id} не найдена"));
         }
 
-        return Ok(ApiResponse<Book>.SuccessResponse(book, "Книга получена успешно"));
+        return Ok(ApiResponse<BookDto>.SuccessResponse(book.ToDto(), "Книга получена успешно"));
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateBook([FromBody] Book book)
+    public async Task<IActionResult> CreateBook([FromBody] CreateBookRequest? request)
     {
-        _logger.LogInformation("Запрос на создание книги: {Title}", book?.Title);
+        logger.LogInformation("Запрос на создание книги. Title={Title}, ISBN={ISBN}", request?.Title, request?.ISBN);
 
-        if (book == null)
+        if (request == null)
         {
-            _logger.LogWarning("Получен пустой объект книги");
-
-            return BadRequest(ApiResponse<Book>.ErrorResponse("Данные книги не могут быть пустыми"));
+            logger.LogWarning("Получен пустой объект запроса на создание книги");
+            return BadRequest(ApiResponse<BookDto>.ErrorResponse("Данные книги не могут быть пустыми"));
         }
 
-        var createdBook = await _bookService.CreateBookAsync(book);
+        try
+        {
+            var createdBook = await bookService.CreateBookAsync(request.ToModel());
 
-        return CreatedAtAction(
-            nameof(GetBookById),
-            new { id = createdBook.Id },
-            ApiResponse<Book>.SuccessResponse(createdBook, "Книга успешно создана")
-        );
+            return CreatedAtAction(
+                nameof(GetBookById),
+                new { id = createdBook.Id },
+                ApiResponse<BookDto>.SuccessResponse(createdBook.ToDto(), "Книга успешно создана")
+            );
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogWarning(ex, "Конфликт при создании книги. ISBN={ISBN}", request.ISBN);
+            return Conflict(ApiResponse<BookDto>.ErrorResponse(ex.Message));
+        }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> UpdateBook(int id, [FromBody] UpdateBookRequest? request)
     {
-        _logger.LogInformation("Запрос на обновление книги с ID: {BookId}", id);
-        
-        var updatedBook = await _bookService.UpdateBookAsync(id, book);
+        logger.LogInformation("Запрос на обновление книги с ID: {BookId}", id);
 
-        if (updatedBook == null)
+        if (request == null)
         {
-            _logger.LogWarning("Книга с ID: {BookId} не найдена для обновления", id);
-            return NotFound(ApiResponse<Book>.ErrorResponse($"Книга с ID {id} не найдена"));
+            logger.LogWarning("Получен пустой объект запроса на обновление книги. Id={BookId}", id);
+            return BadRequest(ApiResponse<BookDto>.ErrorResponse("Данные книги не могут быть пустыми"));
         }
 
-        return Ok(ApiResponse<Book>.SuccessResponse(updatedBook, "Книга успешно обновлена"));
+        try
+        {
+            var updatedBook = await bookService.UpdateBookAsync(id, request.ToModel());
+
+            if (updatedBook == null)
+            {
+                logger.LogWarning("Книга с ID: {BookId} не найдена для обновления", id);
+                return NotFound(ApiResponse<BookDto>.ErrorResponse($"Книга с ID {id} не найдена"));
+            }
+
+            return Ok(ApiResponse<BookDto>.SuccessResponse(updatedBook.ToDto(), "Книга успешно обновлена"));
+        }
+        catch (InvalidOperationException ex)
+        {
+            logger.LogWarning(ex, "Конфликт при обновлении книги. Id={BookId} ISBN={ISBN}", id, request.ISBN);
+            return Conflict(ApiResponse<BookDto>.ErrorResponse(ex.Message));
+        }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     public async Task<IActionResult> DeleteBook(int id)
     {
-        _logger.LogInformation("Запрос на удаление книги с ID: {BookId}", id);
-        
-        var deleted = await _bookService.DeleteBookAsync(id);
+        logger.LogInformation("Запрос на удаление книги с ID: {BookId}", id);
+
+        var deleted = await bookService.DeleteBookAsync(id);
 
         if (!deleted)
         {
-            _logger.LogWarning("Книга с ID: {BookId} не найдена для удаления", id);
-            
+            logger.LogWarning("Книга с ID: {BookId} не найдена для удаления", id);
             return NotFound(ApiResponse.ErrorResponse($"Книга с ID {id} не найдена"));
         }
 

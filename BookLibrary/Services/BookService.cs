@@ -4,53 +4,48 @@ namespace BookLibrary.Services;
 
 public class BookService : IBookService
 {
-    private readonly ILogger<BookService> _logger;
-    private readonly List<Book> _books;
+    private static readonly object Sync = new();
+
+    private static readonly List<Book> Books = new()
+    {
+        new Book
+        {
+            Id = 1, Title = "The Lord of the Rings", Author = "J.R.R. Tolkien", ISBN = "978-0544003415",
+            PublicationYear = 1954, Genre = "Fantasy", IsAvailable = true
+        },
+        new Book
+        {
+            Id = 2, Title = "1984", Author = "George Orwell", ISBN = "978-0451524935", PublicationYear = 1949,
+            Genre = "Dystopian", IsAvailable = true
+        },
+        new Book
+        {
+            Id = 3, Title = "Pride and Prejudice", Author = "Jane Austen", ISBN = "978-0141439518",
+            PublicationYear = 1813, Genre = "Romance", IsAvailable = false
+        }
+    };
 
     public BookService(ILogger<BookService> logger)
     {
-        _logger = logger;
-
-        _books = new List<Book>
-        {
-            new Book
-            {
-                Id = 1, Title = "The Lord of the Rings", Author = "J.R.R. Tolkien", ISBN = "978-0544003415",
-                PublicationYear = 1954, Genre = "Fantasy", IsAvailable = true
-            },
-            new Book
-            {
-                Id = 2, Title = "1984", Author = "George Orwell", ISBN = "978-0451524935", PublicationYear = 1949,
-                Genre = "Dystopian", IsAvailable = true
-            },
-            new Book
-            {
-                Id = 3, Title = "Pride and Prejudice", Author = "Jane Austen", ISBN = "978-0141439518",
-                PublicationYear = 1813, Genre = "Romance", IsAvailable = false
-            }
-        };
-
-        _logger.LogInformation("BookService инициализирован с {Count} книгами", _books.Count);
+        logger.LogInformation("BookService initialized. Count={Count}", Books.Count);
     }
 
     public Task<IEnumerable<Book>> GetAllBooksAsync(string? author = null, string? sortBy = null)
     {
-        _logger.LogInformation("Получение всех книг. Фильтр: author={Author}, sort={SortBy}", author, sortBy);
-
-        IEnumerable<Book> result = _books.AsEnumerable();
+        IEnumerable<Book> result;
+        lock (Sync)
+        {
+            result = Books.ToList();
+        }
 
         if (!string.IsNullOrWhiteSpace(author))
         {
             result = result.Where(b => b.Author.Contains(author, StringComparison.OrdinalIgnoreCase));
-
-            _logger.LogInformation("Фильтрация по автору '{Author}'. Найдено: {Count}", author, result.Count());
         }
 
-        if (sortBy?.ToLower() == "title")
+        if (string.Equals(sortBy, "title", StringComparison.OrdinalIgnoreCase))
         {
             result = result.OrderBy(b => b.Title);
-
-            _logger.LogInformation("Сортировка по названию");
         }
 
         return Task.FromResult(result);
@@ -58,13 +53,11 @@ public class BookService : IBookService
 
     public Task<Book?> GetBookByIdAsync(int id)
     {
-        _logger.LogInformation("Получение книги с ID: {BookId}", id);
-        
-        var book = _books.FirstOrDefault(b => b.Id == id);
+        Book? book;
 
-        if (book == null)
+        lock (Sync)
         {
-            _logger.LogWarning("Книга с ID: {BookId} не найдена", id);
+            book = Books.FirstOrDefault(b => b.Id == id);
         }
 
         return Task.FromResult(book);
@@ -72,57 +65,82 @@ public class BookService : IBookService
 
     public Task<Book> CreateBookAsync(Book book)
     {
-        _logger.LogInformation("Создание новой книги: {Title}", book.Title);
-        
-        book.Id = _books.Max(b => b.Id) + 1;
-        
-        _books.Add(book);
-        _logger.LogInformation("Книга создана с ID: {BookId}", book.Id);
-        
-        return Task.FromResult(book);
-    }
-
-    public Task<Book?> UpdateBookAsync(int id, Book book)
-    {
-        _logger.LogInformation("Обновление книги с ID: {BookId}", id);
-        
-        var existingBook = _books.FirstOrDefault(b => b.Id == id);
-        
-        if (existingBook == null)
+        lock (Sync)
         {
-            _logger.LogWarning("Книга с ID: {BookId} не найдена для обновления", id);
-            return Task.FromResult<Book?>(null);
+            if (Books.Any(b => string.Equals(b.ISBN, book.ISBN, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException($"ISBN '{book.ISBN}' already exists");
+            }
+
+            var nextId = Books.Count == 0 ? 1 : Books.Max(b => b.Id) + 1;
+            book.Id = nextId;
+
+            Books.Add(book);
         }
 
-        existingBook.Title = book.Title;
-        existingBook.Author = book.Author;
-        existingBook.ISBN = book.ISBN;
-        existingBook.PublicationYear = book.PublicationYear;
-        existingBook.Genre = book.Genre;
-        existingBook.IsAvailable = book.IsAvailable;
+        return Task.FromResult(book);
+    }
+    public Task<Book?> UpdateBookAsync(int id, Book book)
+    {
+        Book? existing;
 
-        _logger.LogInformation("Книга с ID: {BookId} успешно обновлена", id);
-        
-        return Task.FromResult<Book?>(existingBook);
+        lock (Sync)
+        {
+            existing = Books.FirstOrDefault(b => b.Id == id);
+            if (existing == null) return Task.FromResult<Book?>(null);
+
+            if (Books.Any(b => b.Id != id && string.Equals(b.ISBN, book.ISBN, StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException($"ISBN '{book.ISBN}' already exists");
+
+            existing.Title = book.Title;
+            existing.Author = book.Author;
+            existing.ISBN = book.ISBN;
+            existing.PublicationYear = book.PublicationYear;
+            existing.Genre = book.Genre;
+            existing.IsAvailable = book.IsAvailable;
+        }
+
+        return Task.FromResult<Book?>(existing);
     }
 
     public Task<bool> DeleteBookAsync(int id)
     {
-        _logger.LogInformation("Удаление книги с ID: {BookId}", id);
-        
-        var book = _books.FirstOrDefault(b => b.Id == id);
-        
-        if (book == null)
+        lock (Sync)
         {
-            _logger.LogWarning("Книга с ID: {BookId} не найдена для удаления", id);
-            
-            return Task.FromResult(false);
-        }
+            var book = Books.FirstOrDefault(b => b.Id == id);
+            if (book == null)
+            {
+                return Task.FromResult(false);
+            }
 
-        _books.Remove(book);
-        
-        _logger.LogInformation("Книга с ID: {BookId} успешно удалена", id);
-        
-        return Task.FromResult(true);
+            Books.Remove(book);
+
+            return Task.FromResult(true);
+        }
+    }
+
+    internal static void ResetForTests()
+    {
+        lock (Sync)
+        {
+            Books.Clear();
+            Books.AddRange([
+                new Book
+                {
+                    Id = 1, Title = "The Lord of the Rings", Author = "J.R.R. Tolkien", ISBN = "978-0544003415",
+                    PublicationYear = 1954, Genre = "Fantasy", IsAvailable = true
+                },
+                new Book
+                {
+                    Id = 2, Title = "1984", Author = "George Orwell", ISBN = "978-0451524935", PublicationYear = 1949,
+                    Genre = "Dystopian", IsAvailable = true
+                },
+                new Book
+                {
+                    Id = 3, Title = "Pride and Prejudice", Author = "Jane Austen", ISBN = "978-0141439518",
+                    PublicationYear = 1813, Genre = "Romance", IsAvailable = false
+                }
+            ]);
+        }
     }
 }

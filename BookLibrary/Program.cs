@@ -1,3 +1,4 @@
+using BookLibrary.Filters;
 using BookLibrary.Services;
 using BookLibrary.Validators;
 using BookLibrary.Middleware;
@@ -6,7 +7,10 @@ using FluentValidation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddScoped<GlobalExceptionFilter>();
+
+builder.Services.AddControllers(options => { options.Filters.AddService<GlobalExceptionFilter>(); });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -20,7 +24,8 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<BookValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateRequestValidator>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -29,10 +34,7 @@ builder.Logging.SetMinimumLevel(LogLevel.Information);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    });
+    options.AddPolicy("AllowAll", policy => { policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader(); });
 });
 
 var app = builder.Build();
@@ -49,11 +51,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
-app.UseExceptionHandlingMiddleware();
+
+app.UseRouting();
 app.UseNotFoundMiddleware();
+
 app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
 
-public partial class Program { }
+public abstract partial class Program
+{
+}
