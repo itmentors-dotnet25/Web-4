@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BookLibrary.Models;
 
+/// <summary>
+/// модель книги
+/// </summary>
 public class Book
 {
     /// <summary>

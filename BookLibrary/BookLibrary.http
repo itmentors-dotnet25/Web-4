@@ -1,6 +1,38 @@
 @BookLibrary_HostAddress = http://localhost:5139
 
-GET {{BookLibrary_HostAddress}}/weatherforecast/
-Accept: application/json
+###
+
+GET {{BookLibrary_HostAddress}}/api/books
+
+###
+
+GET {{BookLibrary_HostAddress}}/api/books
+
+###
+
+POST {{BookLibrary_HostAddress}}/api/books
+Content-Type: application/json
+
+{
+  //Book
+}
+
+###
+
+@id=0
+DELETE {{BookLibrary_HostAddress}}/api/books/{{id}}
+
+###
+
+GET {{BookLibrary_HostAddress}}/api/books/{{id}}
+
+###
+
+PUT {{BookLibrary_HostAddress}}/api/books/{{id}}
+Content-Type: application/json
+
+{
+  //Book
+}
 
 ###
