@@ -1,7 +1,6 @@
+using BookLibrary.Contracts;
 using BookLibrary.Models;
 using BookLibrary.Repositories;
-using Microsoft.Extensions.Logging;
-using BookLibrary.Contracts;
 
 namespace BookLibrary.Services;
 
@@ -9,8 +8,7 @@ public class BookService(ILogger<BookService> logger, IBookRepository bookReposi
 {
     public async Task<IEnumerable<Book>> GetAllBooksAsync(string? author = null, string? sortBy = null)
     {
-        logger.LogInformation("Запрос на получение всех книг. Параметры: author={Author}, sortBy={SortBy}", author,
-            sortBy);
+        logger.LogInformation("Запрос на получение всех книг. author={Author}, sortBy={SortBy}", author, sortBy);
         return await bookRepository.GetAllAsync(author, sortBy);
     }
 

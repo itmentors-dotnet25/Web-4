@@ -102,6 +102,7 @@ public class EfBookRepository(ApplicationDbContext context, ILogger<EfBookReposi
     public async Task<IEnumerable<Book>> GetBooksWithDetailsAsync()
     {
         logger.LogInformation("Запрос на получение книг с детализацией.");
+
         return await context.Books
             .AsNoTracking()
             .Include(b => b.Author)
@@ -129,9 +130,11 @@ public class EfBookRepository(ApplicationDbContext context, ILogger<EfBookReposi
             .AsNoTracking()
             .Select(c => new CategoryStatsDto
             {
-                Id = c.Id,
                 Name = c.Name,
-                Count = c.Books.Count
+                Count = c.Books.Count,
+                AveragePublicationYear = c.Books.Any()
+                    ? c.Books.Average(b => b.PublicationYear)
+                    : 0
             })
             .ToListAsync();
     }

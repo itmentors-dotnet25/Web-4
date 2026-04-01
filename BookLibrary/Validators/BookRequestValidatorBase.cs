@@ -28,11 +28,3 @@ public abstract class BookRequestValidatorBase<T> : AbstractValidator<T>
             .GreaterThan(0).WithMessage("ID категории должен быть больше 0");
     }
 }
-
-public sealed class CreateRequestValidator : BookRequestValidatorBase<CreateBookRequest>
-{
-}
-
-public sealed class UpdateRequestValidator : BookRequestValidatorBase<UpdateBookRequest>
-{
-}

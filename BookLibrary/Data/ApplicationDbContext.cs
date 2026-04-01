@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using BookLibrary.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BookLibrary.Data;
 
@@ -12,23 +12,23 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Book>()
-            .HasOne(b => b.Author)
-            .WithMany(a => a.Books)
-            .HasForeignKey(b => b.AuthorId)
+            .HasOne(book => book.Author)
+            .WithMany(author => author.Books)
+            .HasForeignKey(book => book.AuthorId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Book>()
-            .HasOne(b => b.Category)
-            .WithMany(c => c.Books)
-            .HasForeignKey(b => b.CategoryId)
+            .HasOne(book => book.Category)
+            .WithMany(category => category.Books)
+            .HasForeignKey(book => book.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Book>()
-            .HasIndex(b => b.ISBN)
+            .HasIndex(book => book.ISBN)
             .IsUnique();
 
         modelBuilder.Entity<Category>()
-            .HasIndex(c => c.Name)
+            .HasIndex(category => category.Name)
             .IsUnique();
 
         modelBuilder.Entity<Author>().HasData(
@@ -65,5 +65,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 CategoryId = 2
             }
         );
+
+        base.OnModelCreating(modelBuilder);
     }
 }

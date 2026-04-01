@@ -45,7 +45,10 @@ public class BookServiceTests
     public async Task GetAllBooksAsync_WithAuthorFilter_PassesArgumentsToRepository()
     {
         const string author = "Толстой";
-        var books = new List<Book> { CreateBook(1, "Война и мир", "978-12-3456-789-2") };
+        var books = new List<Book>
+        {
+            CreateBook(1, "Война и мир", "978-12-3456-789-2")
+        };
 
         _bookRepositoryMock
             .Setup(r => r.GetAllAsync(author, null))
@@ -229,8 +232,8 @@ public class BookServiceTests
     {
         var stats = new List<CategoryStatsDto>
         {
-            new() { Id = 1, Name = "Проза", Count = 2 },
-            new() { Id = 2, Name = "Поэзия", Count = 1 }
+            new() { Name = "Проза", Count = 2, AveragePublicationYear = 1950 },
+            new() { Name = "Поэзия", Count = 1, AveragePublicationYear = 1833 }
         };
 
         _bookRepositoryMock
@@ -243,6 +246,7 @@ public class BookServiceTests
         Assert.Equal(2, resultList.Count);
         Assert.Equal("Проза", resultList[0].Name);
         Assert.Equal(2, resultList[0].Count);
+        Assert.Equal(1950, resultList[0].AveragePublicationYear);
     }
 
     private static Book CreateBook(
