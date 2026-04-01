@@ -2,35 +2,29 @@ using System.Text.Json;
 
 namespace BookLibrary.Middleware;
 
-public class NotFoundMiddleware
+public class NotFoundMiddleware(RequestDelegate next, ILogger<NotFoundMiddleware> logger)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<NotFoundMiddleware> _logger;
-
-    public NotFoundMiddleware(RequestDelegate next, ILogger<NotFoundMiddleware> logger)
-    {
-        _next = next;
-        _logger = logger;
-    }
-
     public async Task InvokeAsync(HttpContext context)
     {
-        await _next(context);
+        await next(context);
 
-        if (context.Response.HasStarted) return;
-
-        if (context.Response.StatusCode == StatusCodes.Status404NotFound && context.GetEndpoint() == null)
+        if (context.Response.HasStarted)
         {
-            _logger.LogWarning("Маршрут не найден: {Path}", context.Request.Path);
+            return;
+        }
+
+        if (context.Response.StatusCode == StatusCodes.Status404NotFound && context.GetEndpoint() is null)
+        {
+            logger.LogWarning("Route not found: {Path}", context.Request.Path);
 
             context.Response.ContentType = "application/json";
 
             var payload = new
             {
                 success = false,
-                message = "Маршрут не найден",
+                message = "Route not found",
                 path = context.Request.Path.ToString(),
-                timestamp = DateTimeOffset.UtcNow.ToString("O")
+                timestamp = DateTime.UtcNow.ToString("O")
             };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
