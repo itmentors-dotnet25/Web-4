@@ -9,7 +9,10 @@ public static class BookMapping
     {
         Id = book.Id,
         Title = book.Title,
-        Author = book.Author,
+        Author = book.Author is null
+            ? string.Empty
+            : $"{book.Author.FirstName} {book.Author.LastName}".Trim(),
+        Category = book.Category?.Name ?? string.Empty,
         ISBN = book.ISBN,
         PublicationYear = book.PublicationYear,
         Genre = book.Genre,
@@ -19,20 +22,22 @@ public static class BookMapping
     public static Book ToModel(this CreateBookRequest req) => new()
     {
         Title = req.Title,
-        Author = req.Author,
         ISBN = req.ISBN,
         PublicationYear = req.PublicationYear,
         Genre = req.Genre,
-        IsAvailable = req.IsAvailable
+        IsAvailable = req.IsAvailable,
+        AuthorId = req.AuthorId,
+        CategoryId = req.CategoryId
     };
 
     public static Book ToModel(this UpdateBookRequest req) => new()
     {
         Title = req.Title,
-        Author = req.Author,
         ISBN = req.ISBN,
         PublicationYear = req.PublicationYear,
         Genre = req.Genre,
-        IsAvailable = req.IsAvailable
+        IsAvailable = req.IsAvailable,
+        AuthorId = req.AuthorId,
+        CategoryId = req.CategoryId
     };
 }
