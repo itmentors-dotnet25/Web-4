@@ -1,23 +1,37 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-    </PropertyGroup>
+
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+	</PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.21"/>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+        <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.4" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\" />
       <Folder Include="Logging\" />
       <Folder Include="Middleware\" />
-      <Folder Include="Models\" />
+      
       <Folder Include="Services\" />
-      <Folder Include="Validators\" />
+      <Folder Include="Controllers\" />
+      <Folder Include="Services\" />
+      <Folder Include="Requests\" />
+      <Folder Include="Middleware\" />
+      <Folder Include="Responses\" />
+      <Folder Include="Results\" />
+      <Folder Include="Extensions\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="Controllers\BooksController.cs" />
+      <None Include="Requests\BookRequest.cs" />
     </ItemGroup>
 
 </Project>
